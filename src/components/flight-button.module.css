@@ -1,0 +1,118 @@
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  isolation: isolate;
+
+  --plane-opacity: 0;
+  --plane-x: 0;
+  --plane-y: 0;
+  --rotate: 0;
+  --text-opacity: 1;
+  --success-opacity: 0;
+  --success-x: -12px;
+  --trails-stroke: 171;
+  --success-stroke: 48;
+  --border-radius: 6px;
+
+  border-radius: var(--border-radius);
+  transition: border-radius 0.2s ease;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.defaultText {
+  display: inline-flex;
+  align-items: center;
+  opacity: var(--text-opacity);
+  transition: opacity 0.1s ease;
+}
+
+.successText {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #10b981;
+  opacity: var(--success-opacity);
+  transform: translateX(var(--success-x));
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+}
+
+.successText svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 48;
+  stroke-dashoffset: var(--success-stroke);
+}
+
+.trails {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.trails path {
+  stroke-dasharray: 171;
+  stroke-dashoffset: var(--trails-stroke);
+}
+
+.plane {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  opacity: var(--plane-opacity);
+  transform: translate(-50%, -50%)
+    translate(calc(var(--plane-x) * 1px), calc(var(--plane-y) * 1px))
+    rotate(calc(var(--rotate) * 1deg));
+  pointer-events: none;
+}
+
+.left,
+.right {
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+}
+
+.left {
+  clip-path: polygon(
+    50% 50%,
+    calc(var(--left-wing-first-x, 50) * 1%) calc(var(--left-wing-first-y, 50) * 1%),
+    calc(var(--left-wing-second-x, 50) * 1%) calc(var(--left-wing-second-y, 50) * 1%),
+    calc(var(--left-wing-third-x, 50) * 1%) calc(var(--left-wing-third-y, 50) * 1%),
+    calc(var(--left-body-third-x, 50) * 1%) calc(var(--left-body-third-y, 100) * 1%)
+  );
+}
+
+.right {
+  clip-path: polygon(
+    50% 50%,
+    calc(var(--right-wing-first-x, 50) * 1%) calc(var(--right-wing-first-y, 50) * 1%),
+    calc(var(--right-wing-second-x, 50) * 1%) calc(var(--right-wing-second-y, 50) * 1%),
+    calc(var(--right-wing-third-x, 50) * 1%) calc(var(--right-wing-third-y, 50) * 1%),
+    calc(var(--right-body-third-x, 50) * 1%) calc(var(--right-body-third-y, 100) * 1%)
+  );
+}
