@@ -1,0 +1,278 @@
+PORTFOLIO PROJECT SUMMARIES
+Author/GitHub: github.com/rohithprem18
+Name : Rohith Prem S
+College : Saveetha Engineering College 
+final year student 
+
+acheivements
+Secured 1st place at the national-level IBM Z Datathon 2024 for developing an innovative solution.
+Achieved a Top 4 national ranking at the ISRO–IIT Kharagpur Hackathon.
+Qualified for the semifinals of the national-level L&T Techgium competition.
+Reached the semifinals of the Flipkart GRiD 7.0 national-level competition.
+Earned the Oracle Database SQL Certified Associate (1Z0-914) certification.
+Secured Runner-up position in the QuizOnQuants at Saveetha Engineering College.
+Solved 200+ Data Structures and Algorithms problems on LeetCode.
+
+expereince 
+Software Engineering Mentee
+IBM India Systems Development Lab (ISDL), Bangalore, Karnataka
+Jan 2025 – Mar 2025
+
+Analyzed enterprise-grade software workflows across 3+ modules at IBM ISDL, gaining exposure to large-scale system design and deployment practices.
+Enhanced an existing Ethereum fraud detection system by refining feature selection and model evaluation, achieving 15–20% reduction in false positives.
+Developed 5+ RESTful APIs to support backend services and frontend integration, improving data flow reliability and reducing manual processing.
+
+**Web Developer Intern**
+Connect Infosystems, Chennai, Tamil Nadu
+June 2024 – July 2024
+
+* Designed and developed **responsive web interfaces** using **HTML and CSS**, ensuring cross-browser compatibility and structured layouts.
+* Developed **multi-page web applications** with clean UI layouts and basic backend integration concepts.
+
+
+
+Compiled: 2026-08-14
+============================================================
+
+This file summarizes 5 full-stack projects for portfolio use: what each
+one is, why it exists, what it's built with, and what's genuinely
+noteworthy about the engineering (the kind of detail worth pulling into
+a resume bullet, a portfolio site card, or an interview answer).
+
+============================================================
+1. EVENTX — Real-time event ticket booking system
+============================================================
+Live demo: https://event-x-ruby-six.vercel.app
+
+WHAT IT IS
+A ticket-booking web app (think Ticketmaster/BookMyShow, scoped down)
+where users browse events, pick seats, and book tickets. The headline
+engineering problem it solves: guaranteeing two people can never book
+the same seat, even under real concurrent load, on a fully serverless
+backend with no long-lived process to hold state in memory.
+
+WHY IT'S INTERESTING
+- Correctness is enforced by the database, not the app code: a Postgres
+  UNIQUE constraint on (event_id, seat_id) makes double-booking
+  physically impossible, verified by actually racing two connections
+  against a real local Postgres instance.
+- Seat "holds" (the 2-minute window when a seat looks reserved while
+  someone is checking out) are implemented with Redis atomic
+  SET...NX PX locks that self-expire — no cleanup job, no way for a
+  seat to get stuck "locked" forever.
+- Because the backend is Vercel serverless functions (no persistent
+  connection, no SSE, no pub/sub), real-time sync is done via ~2s
+  polling instead of push — a deliberate, explained architectural
+  trade-off rather than an oversight.
+- Full real auth: bcrypt-hashed passwords, signed httpOnly JWT session
+  cookies, protected routes, separate user/admin dashboards.
+- Graceful degradation: if the API is unreachable, the client falls
+  back to a localStorage-backed mode and explicitly tells the user the
+  double-booking guarantee no longer holds, instead of failing silently.
+- PDF e-tickets with scannable QR codes.
+
+TECH STACK
+Frontend: React 18, TypeScript, Vite, React Router, Tailwind CSS,
+  Framer Motion
+Backend: Vercel Serverless Functions (Node.js)
+Data: Postgres via Neon (@neondatabase/serverless), Redis via Upstash
+Auth: bcryptjs, jose (JWT)
+Testing: Vitest, React Testing Library
+
+RESUME-READY LINE
+"Built a serverless event-ticketing platform with database-enforced
+concurrency control (Postgres unique constraints + Redis TTL locks),
+verified against real race conditions, with real auth and PDF ticketing."
+
+============================================================
+2. TACK — Minimal team/project board (Trello-style)
+============================================================
+
+WHAT IT IS
+A small, opinionated kanban-style project board: boards → lists → cards,
+draggable between lists. Built to look deliberate with very little UI —
+one accent color, hairline borders, and a single signature detail (a
+"tack rail" underline that appears on list headers that hold cards).
+
+WHY IT'S INTERESTING
+- No REST API layer and no client-side data-fetching library at all —
+  every mutation is a Next.js Server Action backed by Prisma/Postgres,
+  a deliberately modern, minimal-plumbing architecture.
+- Drag-and-drop (dnd-kit) with optimistic UI: a card move applies
+  instantly on screen and only snaps back if the server rejects it.
+- "Live sync" without websockets or a third-party pub/sub service:
+  the board polls every 3s via router.refresh(), but intelligently
+  pauses while the tab is backgrounded, mid-drag, or while your own
+  mutation is still in flight — avoiding the classic bug where an
+  incoming refresh yanks a card out from under an active drag.
+- Auth via Auth.js v5 (Google OAuth + email/password credentials).
+- Genuinely audited responsive design (not just eyeballed) at
+  320/375/414/768/1024px, with two real documented breakage fixes.
+- Clean URL design: /boards/{id}/{title-slug} — the id is the only
+  thing actually looked up server-side; the slug is cosmetic, so
+  renaming a board never breaks an old link (redirects to canonical).
+- Motion (Framer Motion) used throughout the app, deliberately kept
+  off the draggable cards specifically so it doesn't fight dnd-kit's
+  own GPU transforms.
+
+TECH STACK
+Next.js 16 (App Router), TypeScript (strict), Tailwind CSS v4,
+Framer Motion, Auth.js v5, Prisma 5 + PostgreSQL, @dnd-kit
+
+RESUME-READY LINE
+"Built a Trello-style board app on Next.js Server Actions only (no REST
+layer), with optimistic drag-and-drop, near-real-time sync via smart
+polling, and an audited responsive design down to 320px."
+
+============================================================
+3. CHAINGUARD — Ethereum address risk scoring (ML)
+============================================================
+Live demo: https://chainguard-zxbl.onrender.com/
+
+WHAT IT IS
+A machine-learning web tool: paste an Ethereum wallet address, get a
+calibrated 0–1 risk score plus the top 3 plain-English behavioral
+reasons behind it (e.g. "sends far more often than it receives"),
+based on patterns seen in a public dataset of historically reported
+scam activity. Explicitly framed as pattern-matching, not accusation.
+
+WHY IT'S INTERESTING
+- A real, evaluated ML pipeline, not a toy: LightGBM classifier over
+  14 engineered on-chain behavioral features, beating a logistic
+  regression baseline by 37 points of PR-AUC (0.9451 vs 0.5744).
+- Proper probability calibration (isotonic regression) so a "0.8 risk
+  score" actually means ~80%, verified via Brier score improvement —
+  most portfolio ML demos skip this entirely.
+- Real explainability: SHAP TreeExplainer gives per-request, per-
+  address feature attributions, mapped through a fixed table of 28
+  neutral, non-accusatory phrases (never naming intent or a person).
+- Decision thresholds (high/medium risk bands) are derived
+  programmatically from the precision-recall curve, not hardcoded
+  round numbers.
+- Careful, explicit statement of the model's limitations in the
+  README (no timestamps → no temporal validation, noisy/self-selected
+  labels, fixed demo address table) — shows methodological maturity.
+- Ships as a single Docker image with no database (a Parquet feature
+  table loaded into memory) and no build step on the frontend (plain
+  HTML/CSS/JS) — model, calibrator, and explainer load once at
+  startup via a FastAPI lifespan handler.
+- Has a CI-enforced language linter that fails the build if any
+  accusatory word (fraudster, criminal, scammer, guilty...) appears
+  anywhere in code, API responses, or docs.
+
+TECH STACK
+Python 3.11, LightGBM, scikit-learn (isotonic calibration), SHAP,
+FastAPI + Uvicorn, Parquet (pyarrow), Docker
+
+RESUME-READY LINE
+"Built and deployed a calibrated LightGBM risk-scoring model for
+Ethereum addresses (PR-AUC 0.945) with SHAP-based per-request
+explanations, served via FastAPI in a single Docker image."
+
+============================================================
+4. SIFT — Realtime web search engine (self-hosted)
+============================================================
+
+WHAT IT IS
+A self-hosted search engine UI: type a query and results (web, images,
+news, video) start streaming in before you finish typing — no page
+reloads. A Spring Boot backend holds the one secret that matters (the
+Serper/Google Search API key) so it never reaches the browser; a React
+frontend renders whatever comes back.
+
+WHY IT'S INTERESTING
+- "Realtime" is implemented properly, not just fast: 350ms debounce,
+  AbortController cancellation on every keystroke so a late response
+  can never overwrite a newer one, and previous results stay visible
+  (dimmed) during loading instead of showing a jarring full-page
+  spinner — skeletons only ever appear on the very first search.
+- Server-side response caching (Caffeine, 5-minute TTL) — repeat
+  searches return in under 10ms, with a visible "Cached" badge in the
+  UI so the speed is explained, not just felt.
+- The API key is architecturally guaranteed to never leave the server
+  — enforced by keeping it entirely out of the frontend codebase.
+- Ships as a single runnable JAR: the React build gets embedded into
+  Spring Boot's static resources, so one artifact serves the whole
+  app on one port — no separate frontend host needed.
+- Four distinct search modes (web/images/news/video) plus Google's
+  answer box and knowledge panel, each degrading gracefully (missing
+  data renders as nothing, never a crash or a "N/A" placeholder).
+- URL is treated as real state (query + tab persist through reload/
+  share), with full keyboard shortcuts (/ to focus, Esc to clear).
+
+TECH STACK
+Backend: Java 21, Spring Boot 3.3, RestClient, Caffeine cache
+Frontend: React 18, Vite, plain CSS (no framework)
+Search provider: Serper (Google Search API)
+Deployment: single JAR, Docker (multi-stage), Vercel option
+
+RESUME-READY LINE
+"Built a self-hosted, debounced realtime search engine (Java/Spring
+Boot + React) with request cancellation, server-side caching, and a
+single-JAR deployment model."
+
+============================================================
+5. DOCKYARD — Inventory & warehouse operations platform
+============================================================
+
+WHAT IT IS
+A B2B SaaS-style inventory and warehouse management dashboard for small
+and medium businesses — the "operational command center" for knowing
+what stock you have, where it is, what's running low, and what
+happened to it. Deliberately designed to feel like Linear / Stripe
+Dashboard / Shopify Admin rather than a generic CRUD admin template.
+
+WHY IT'S INTERESTING
+- Product-thinking is visible, not just code: every screen is built
+  around "what does this user need to decide or do right now,"
+  documented in an explicit PRODUCT.md (positioning, target users,
+  brand commitments) alongside the code — the kind of artifact real
+  product teams produce.
+- Full feature surface of a real ops tool: Dashboard (with true 7-day
+  deltas, not vanity metrics), Products catalog with deep-linkable
+  filters, Inventory movement tracking (in/out/adjustments/transfers
+  between warehouses), Suppliers directory, Warehouses with live
+  utilization, and an Analytics module with trend charts.
+- Every data table shares one consistent pattern: search, sort,
+  filter, pagination, bulk actions, and keyboard navigation, with a
+  single unified In Stock / Low Stock / Out of Stock status model
+  used everywhere rather than ad hoc per-screen logic.
+- A genuine public marketing landing page in front of the app that
+  shows the real, live product UI as its own proof — explicitly no
+  fabricated testimonials, logos, or user counts, since none of that
+  exists yet (an honest, deliberate constraint worth mentioning).
+- A documented design system (DESIGN.md) with real design-token
+  discipline: 8px spacing system, 5-size type scale, fixed color
+  semantics (green=success, amber=warning, red=danger, blue=info)
+  that stayed fixed even through a full brand/palette rebrand.
+
+TECH STACK
+React 19, TypeScript, Vite, Tailwind CSS v4, shadcn-style components
+on Radix primitives, React Router, TanStack Query, TanStack Table,
+React Hook Form, Zod, Recharts
+Deployment: Vercel · pnpm
+
+RESUME-READY LINE
+"Designed and built an inventory/warehouse operations dashboard
+(React 19 + TypeScript) with six operational modules, a documented
+design system, and a marketing landing page backed by the real live
+product UI."
+
+============================================================
+COMMON THREADS ACROSS ALL FIVE PROJECTS
+============================================================
+- Each one picks a hard, specific technical problem and solves it
+  properly rather than superficially: DB-enforced concurrency
+  (EventX), Server-Action-only architecture (Tack), calibrated ML with
+  explainability (ChainGuard), cancellation-safe realtime search
+  (Sift), and product-driven design-system discipline (Dockyard).
+- Every project ships as a single deployable artifact (one Vercel
+  project, one JAR, or one Docker image) — practical, low-friction
+  deployment is a recurring value, not an afterthought.
+- Every README documents real trade-offs and limitations candidly
+  (e.g. "this is polling, not push, and here's why"; "this dataset has
+  no timestamps, so the split isn't temporal") rather than overselling
+  — a strong signal of engineering maturity for a portfolio audience.
+- Consistent attention to responsive design, accessibility (focus
+  rings, aria-live, reduced-motion), and a genuine hand-built visual
+  design system per project rather than an off-the-shelf UI kit.
