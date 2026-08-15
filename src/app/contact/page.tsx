@@ -7,7 +7,6 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { CurrentTime } from "@/components/CurrentTime";
 import { RightNavbar } from "@/components/RightNavbar";
 import { FlightButton } from "@/components/FlightButton";
-import DisplacementText from "@/components/DisplacementText";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import SocialHoverCard from "@/components/pixel-perfect/social-hover-card";
@@ -19,6 +18,7 @@ export default function ContactPage() {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successTrigger, setSuccessTrigger] = useState(0);
 
   const isFormValid =
     formData.name.trim() !== "" &&
@@ -45,6 +45,8 @@ export default function ContactPage() {
       if (response.ok) {
         form.reset();
         setFormData({ name: "", email: "", message: "" });
+        // Confirmation mail sent — play the paper-plane "Sent" animation.
+        setSuccessTrigger((t) => t + 1);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -206,6 +208,7 @@ export default function ContactPage() {
               <FlightButton
                 type="submit"
                 disabled={isSubmitting || !isFormValid}
+                playTrigger={successTrigger}
                 className="!relative !bg-zinc-50 dark:!bg-[#09090b] !border-black/5 dark:!border-white/5 !shadow-sm !shadow-black/20 dark:!shadow-lg dark:!shadow-black/80 !rounded-[6px] !px-4 !py-2 !text-[13px] !font-medium !transition-all !duration-300 hover:!bg-zinc-100 dark:hover:!bg-[#121214]"
               />
             </div>
@@ -220,7 +223,7 @@ export default function ContactPage() {
           <div className="absolute -right-8 md:-right-4 w-[2px] h-[2px] bg-black/50 dark:bg-white/[0.25] translate-x-1/2 translate-y-[-1px] pointer-events-none z-20" />
         </div>
 
-        {/* Footer - Socials + Displacement Text */}
+        {/* Footer - Socials */}
         <div className="pt-2 -mt-4 pb-5 px-4 flex flex-col md:flex-row md:items-center justify-between gap-8 overflow-hidden">
           <div className="flex-shrink-0">
             <p className="text-[14px] text-zinc-500 mb-2">Find me on my <span className="font-medium text-zinc-800 dark:text-zinc-200">socials</span></p>
@@ -242,16 +245,6 @@ export default function ContactPage() {
                 </a>
               </SocialHoverCard>
             </div>
-          </div>
-
-          <div className="flex-grow h-[160px] relative flex items-center justify-end -mr-56 mt-2">
-            <DisplacementText
-              text="ROHITH"
-              fontSize={300}
-              className="h-full w-full"
-              lightColor="#171717"
-              darkColor="#e5e5e5"
-            />
           </div>
         </div>
       </div>

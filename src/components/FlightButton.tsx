@@ -1,27 +1,42 @@
 "use client";
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import styles from './flight-button.module.css';
 
 interface FlightButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children?: React.ReactNode;
+  /**
+   * Bump this number whenever the underlying action (e.g. the form
+   * submission) has actually succeeded. The plane-flies-away "Sent"
+   * animation only plays when this value changes, so it reflects a
+   * real confirmation instead of firing on every click.
+   */
+  playTrigger?: number;
 }
 
-export function FlightButton({ className, onClick, ...props }: FlightButtonProps) {
+export function FlightButton({ className, onClick, playTrigger, ...props }: FlightButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [isActive, setIsActive] = useState(false);
+  const prevTriggerRef = useRef(playTrigger);
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (isActive || props.disabled) return;
-    setIsActive(true);
-    
-    const button = buttonRef.current;
-    if (!button) return;
-
-    // Call external onClick if provided (e.g. form submit)
+    if (props.disabled) return;
+    // Call external onClick if provided (e.g. form submit); the actual
+    // "Sent" animation is triggered separately once success is confirmed.
     if (onClick) {
-        onClick(e);
+      onClick(e);
+    }
+  };
+
+  const playSuccessAnimation = () => {
+    if (isActive) return;
+    setIsActive(true);
+
+    const button = buttonRef.current;
+    if (!button) {
+      setIsActive(false);
+      return;
     }
 
     // Make plane visible instantly for animation
@@ -130,6 +145,13 @@ export function FlightButton({ className, onClick, ...props }: FlightButtonProps
         }]
       })
   };
+
+  useEffect(() => {
+    if (playTrigger === undefined || prevTriggerRef.current === playTrigger) return;
+    prevTriggerRef.current = playTrigger;
+    playSuccessAnimation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playTrigger]);
 
   return (
     <button 
